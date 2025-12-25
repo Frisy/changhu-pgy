@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>待签字确认 - 居家长护业务管理系统</title>
+    <!-- 引入外部资源 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        /* 继承全局样式 */
+        body { font-family: "微软雅黑", "思源黑体", sans-serif; background-color: #f5f7fa; color: #333; }
+        .btn-primary { background-color: #1890FF; border-color: #1890FF; }
+        .btn-primary:hover { background-color: #096DD9; border-color: #096DD9; }
+        .text-primary { color: #1890FF !important; }
+        .text-success { color: #52C41A !important; }
+        .text-warning { color: #FAAD14 !important; }
+        .text-danger { color: #FF4D4F !important; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        .card-header { background: #fff; border-bottom: 1px solid #f0f0f0; border-radius: 12px 12px 0 0; padding: 15px 20px; }
+        .card-body { padding: 20px; }
+        /* 布局样式 */
+        .app-container { display: flex; min-height: 100vh; }
+        /* 侧边导航 */
+        .sidebar { width: 220px; background: #fff; box-shadow: 1px 0 2px rgba(0,0,0,0.05); padding: 20px 0; flex-shrink: 0; }
+        .sidebar-logo { text-align: center; padding: 0 20px 20px; border-bottom: 1px solid #f0f0f0; margin-bottom: 20px; }
+        .sidebar-logo img { height: 40px; margin-bottom: 8px; }
+        .sidebar-logo h3 { font-size: 16px; color: #1890FF; font-weight: 600; margin: 0; }
+        .nav-menu { list-style: none; padding: 0; margin: 0; }
+        .nav-item { margin-bottom: 4px; }
+        .nav-link { display: flex; align-items: center; padding: 12px 20px; color: #666; text-decoration: none; font-size: 14px; border-left: 3px solid transparent; }
+        .nav-link:hover, .nav-link.active { color: #1890FF; background-color: #f0f7ff; border-left: 3px solid #1890FF; }
+        .nav-link i { font-size: 18px; margin-right: 12px; width: 20px; text-align: center; }
+        /* 主内容区 */
+        .main-content { flex: 1; padding: 20px; overflow-y: auto; }
+        /* 顶部导航 */
+        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #333; margin: 0; }
+        .user-info { display: flex; align-items: center; }
+        .notification { position: relative; margin-right: 20px; cursor: pointer; }
+        .notification i { font-size: 20px; color: #666; }
+        .notification-badge { position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; background: #FF4D4F; color: #fff; border-radius: 50%; font-size: 12px; text-align: center; line-height: 18px; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: #1890FF; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; margin-right: 10px; }
+        .user-name { font-size: 14px; font-weight: 500; }
+        /* 筛选区样式 */
+        .filter-bar { background: #fff; border-radius: 8px; padding: 15px 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .filter-row { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; align-items: flex-end; }
+        .filter-item { flex: 1; min-width: 150px; }
+        .filter-label { font-size: 13px; font-weight: 500; margin-bottom: 8px; display: block; }
+        .form-control, .form-select { border-radius: 8px; border: 1px solid #ddd; padding: 8px 12px; font-size: 13px; }
+        .filter-actions { display: flex; gap: 10px; }
+        .btn-sm { padding: 6px 12px; font-size: 13px; border-radius: 6px; }
+        /* 列表样式 */
+        .sign-table th { font-size: 13px; font-weight: 600; color: #666; text-align: center; vertical-align: middle; }
+        .sign-table td { font-size: 13px; vertical-align: middle; text-align: center; }
+        .sign-table .text-left { text-align: left; }
+        /* 分页样式 */
+        .pagination-container { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+        .pagination { margin: 0; }
+        .page-item.active .page-link { background-color: #1890FF; border-color: #1890FF; }
+        .page-link { color: #666; }
+        .page-link:hover { color: #1890FF; }
+        /* 弹窗样式 */
+        .modal-title { font-size: 16px; font-weight: 600; }
+        .modal-body { font-size: 13px; max-height: 70vh; overflow-y: auto; }
+        .modal-footer { padding: 10px 20px; border-top: 1px solid #f0f0f0; }
+        .form-label { font-size: 13px; font-weight: 500; margin-bottom: 8px; }
+        /* 签字确认表单样式 */
+        .sign-form-section { margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px; }
+        .sign-form-section h6 { font-size: 14px; font-weight: 600; margin-bottom: 15px; color: #333; }
+        .signature-area { border: 2px dashed #ddd; border-radius: 8px; padding: 20px; text-align: center; background: #fff; min-height: 150px; margin-top: 10px; }
+        .signature-canvas { border: 1px solid #ddd; background: #fff; cursor: crosshair; }
+        .signature-controls { margin-top: 10px; display: flex; gap: 10px; justify-content: center; }
+        .info-item { display: flex; margin-bottom: 10px; }
+        .info-label { width: 120px; color: #666; font-weight: 500; }
+        .info-value { flex: 1; color: #333; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 侧边导航 -->
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <img src="https://via.placeholder.com/80x40?text=居家长护" alt="系统Logo">
+                <h3>协助申请员工作平台</h3>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">
+                        <i class="fa fa-home"></i>
+                        <span>首页</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="线索管理页.html" class="nav-link">
+                        <i class="fa fa-list-alt"></i>
+                        <span>协助申请线索管理</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="待提交材料.html" class="nav-link">
+                        <i class="fa fa-folder-open-o"></i>
+                        <span>待提交材料</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="待签字确认.html" class="nav-link active">
+                        <i class="fa fa-pencil-square-o"></i>
+                        <span>待签字确认</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="服务协议或计划打印.html" class="nav-link">
+                        <i class="fa fa-stethoscope"></i>
+                        <span>服务协议或计划打印</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="线上回访.html" class="nav-link">
+                        <i class="fa fa-upload"></i>
+                        <span>线上回访执行</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 顶部导航 -->
+            <div class="top-nav">
+                <h1 class="page-title">待签字确认</h1>
+                <div class="user-info">
+                    <div class="notification">
+                        <i class="fa fa-bell-o"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="user-avatar">张</div>
+                    <span class="user-name">张三（协助申请员）</span>
+                </div>
+            </div>
+
+            <!-- 筛选区 -->
+            <div class="filter-bar">
+                <div class="filter-row">
+                    <div class="filter-item">
+                        <label class="filter-label">姓名</label>
+                        <input type="text" class="form-control" id="nameFilter" placeholder="请输入姓名">
+                    </div>
+                    <div class="filter-item">
+                        <label class="filter-label">身份证号</label>
+                        <input type="text" class="form-control" id="idcardFilter" placeholder="请输入身份证号">
+                    </div>
+                    <div class="filter-item">
+                        <label class="filter-label">公示日期</label>
+                        <input type="date" class="form-control" id="pubDateFilter">
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-sm btn-primary" id="searchBtn"><i class="fa fa-search"></i> 查询</button>
+                        <button class="btn btn-sm btn-outline-secondary" id="resetBtn"><i class="fa fa-refresh"></i> 重置</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 待签字确认列表 -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover sign-table">
+                            <thead>
+                                <tr>
+                                    <th>姓名</th>
+                                    <th>身份证号</th>
+                                    <th class="text-left">居住地址</th>
+                                    <th>联系电话</th>
+                                    <th>公示日期</th>
+                                    <th>失能等级</th>
+                                    <th>评估日期</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="signTableBody">
+                                <!-- 数据将动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 分页 -->
+                    <div class="pagination-container">
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination" id="pagination">
+                                <!-- 分页将动态生成 -->
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查看详情弹窗 -->
+    <div class="modal fade" id="signModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">查看详情 - <span id="signClientName">李四</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- 服务对象信息 -->
+                    <div class="sign-form-section">
+                        <h6>服务对象信息</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label">姓名：</div>
+                                    <div class="info-value" id="signName">李四</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">身份证号：</div>
+                                    <div class="info-value" id="signIdcard">330101********1234</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">联系电话：</div>
+                                    <div class="info-value" id="signPhone">13812345678</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label">居住地址：</div>
+                                    <div class="info-value" id="signAddress">越城区解放南路123号</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">失能等级：</div>
+                                    <div class="info-value" id="signDisLevel">重度一级</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">公示日期：</div>
+                                    <div class="info-value" id="signPubDate">2024-05-20</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 代理人信息 -->
+                    <div class="sign-form-section">
+                        <h6>代理人信息</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label">代理人姓名：</div>
+                                    <div class="info-value" id="signAgentName">李五</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">代理人电话：</div>
+                                    <div class="info-value" id="signAgentPhone">13912345678</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label">关系：</div>
+                                    <div class="info-value" id="signRelation">子女</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 服务协议信息 -->
+                    <div class="sign-form-section">
+                        <h6>服务协议信息</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label">签约送达日期：</div>
+                                    <div class="info-value" id="signDateDisplay">-</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label">预期首次服务日期：</div>
+                                    <div class="info-value" id="expFirstDateDisplay">-</div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="info-item">
+                                    <div class="info-label">不开始服务说明：</div>
+                                    <div class="info-value" id="noserReasonDisplay">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 签字确认 -->
+                    <div class="sign-form-section">
+                        <h6>评估结论书</h6>
+                        <div class="mb-3">
+                            <label class="form-label">服务对象/代理人签字后评估结论书</label>
+                            <div class="signature-area" style="min-height: 100px;">
+                                <div id="signatureDisplay" style="color: #999; padding: 20px;">
+                                    <i class="fa fa-file-image-o" style="font-size: 48px; opacity: 0.3;"></i>
+                                    <p style="margin-top: 10px;">现场上传评估结论书图片</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 待签字确认数据
+        let allSignData = [
+            {
+                id: 1,
+                client_id: 101,
+                name: '李四',
+                idcard: '330101********1234',
+                address: '越城区解放南路123号',
+                phone: '13812345678',
+                pub_date: '2024-05-20',
+                dis_level: '重度一级',
+                ass_date: '2024-05-15',
+                agent: '李五',
+                agent_phone: '13912345678',
+                relation: '子女'
+            },
+            {
+                id: 2,
+                client_id: 102,
+                name: '王五',
+                idcard: '330102********5678',
+                address: '柯桥区柯桥大道456号',
+                phone: '13912345678',
+                pub_date: '2024-05-18',
+                dis_level: '重度二级',
+                ass_date: '2024-05-12',
+                agent: '王六',
+                agent_phone: '13712345678',
+                relation: '配偶'
+            },
+            {
+                id: 3,
+                client_id: 103,
+                name: '赵六',
+                idcard: '330103********9012',
+                address: '上虞区百官街道789号',
+                phone: '13712345678',
+                pub_date: '2024-05-22',
+                dis_level: '重度三级',
+                ass_date: '2024-05-18',
+                agent: '赵七',
+                agent_phone: '13612345678',
+                relation: '子女'
+            }
+        ];
+
+        // 筛选和分页配置
+        let filters = {
+            name: '',
+            idcard: '',
+            pub_date: ''
+        };
+        let pagination = {
+            currentPage: 1,
+            pageSize: 10,
+            total: 0
+        };
+
+        // 当前选中的服务对象
+        let currentClient = null;
+
+        // 筛选数据
+        function filterSignData() {
+            let filtered = allSignData.filter(item => {
+                if (filters.name && !item.name.includes(filters.name)) {
+                    return false;
+                }
+                if (filters.idcard && !item.idcard.includes(filters.idcard)) {
+                    return false;
+                }
+                if (filters.pub_date && item.pub_date !== filters.pub_date) {
+                    return false;
+                }
+                return true;
+            });
+
+            pagination.total = filtered.length;
+            return filtered;
+        }
+
+        // 渲染表格
+        function renderTable() {
+            const filteredData = filterSignData();
+            const startIndex = (pagination.currentPage - 1) * pagination.pageSize;
+            const endIndex = startIndex + pagination.pageSize;
+            const pageData = filteredData.slice(startIndex, endIndex);
+
+            const tbody = $('#signTableBody');
+            tbody.empty();
+
+            if (pageData.length === 0) {
+                tbody.append('<tr><td colspan="8" style="text-align: center; padding: 40px; color: #999;">暂无数据</td></tr>');
+            } else {
+                pageData.forEach(item => {
+                    const row = `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${item.idcard}</td>
+                            <td class="text-left">${item.address}</td>
+                            <td>${item.phone}</td>
+                            <td>${item.pub_date}</td>
+                            <td><span class="badge bg-warning">${item.dis_level}</span></td>
+                            <td>${item.ass_date}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary view-detail-btn" 
+                                        data-id="${item.id}"
+                                        data-client-id="${item.client_id}"
+                                        data-name="${item.name}"
+                                        data-idcard="${item.idcard}"
+                                        data-phone="${item.phone}"
+                                        data-address="${item.address}"
+                                        data-pub-date="${item.pub_date}"
+                                        data-dis-level="${item.dis_level}"
+                                        data-ass-date="${item.ass_date}"
+                                        data-agent="${item.agent}"
+                                        data-agent-phone="${item.agent_phone}"
+                                        data-relation="${item.relation}">
+                                    <i class="fa fa-eye"></i> 查看详情
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.append(row);
+                });
+            }
+
+            renderPagination();
+        }
+
+        // 渲染分页
+        function renderPagination() {
+            const totalPages = Math.ceil(pagination.total / pagination.pageSize);
+            const paginationEl = $('#pagination');
+            paginationEl.empty();
+
+            if (totalPages <= 1) {
+                return;
+            }
+
+            const prevDisabled = pagination.currentPage === 1 ? 'disabled' : '';
+            paginationEl.append(`
+                <li class="page-item ${prevDisabled}">
+                    <a class="page-link" href="#" data-page="${pagination.currentPage - 1}">上一页</a>
+                </li>
+            `);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const active = i === pagination.currentPage ? 'active' : '';
+                paginationEl.append(`
+                    <li class="page-item ${active}">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    </li>
+                `);
+            }
+
+            const nextDisabled = pagination.currentPage === totalPages ? 'disabled' : '';
+            paginationEl.append(`
+                <li class="page-item ${nextDisabled}">
+                    <a class="page-link" href="#" data-page="${pagination.currentPage + 1}">下一页</a>
+                </li>
+            `);
+        }
+
+
+        // 查询按钮
+        $('#searchBtn').click(function() {
+            filters.name = $('#nameFilter').val();
+            filters.idcard = $('#idcardFilter').val();
+            filters.pub_date = $('#pubDateFilter').val();
+            pagination.currentPage = 1;
+            renderTable();
+        });
+
+        // 重置按钮
+        $('#resetBtn').click(function() {
+            $('#nameFilter').val('');
+            $('#idcardFilter').val('');
+            $('#pubDateFilter').val('');
+            filters = { name: '', idcard: '', pub_date: '' };
+            pagination.currentPage = 1;
+            renderTable();
+        });
+
+        // 分页点击
+        $(document).on('click', '#pagination .page-link', function(e) {
+            e.preventDefault();
+            const page = $(this).data('page');
+            if (page && page !== pagination.currentPage && page >= 1) {
+                pagination.currentPage = page;
+                renderTable();
+            }
+        });
+
+        // 查看详情按钮
+        $(document).on('click', '.view-detail-btn', function() {
+            const data = $(this).data();
+            currentClient = allSignData.find(c => c.id === data.id);
+            if (!currentClient) return;
+
+            // 填充信息
+            $('#signClientName').text(data.name);
+            $('#signName').text(data.name);
+            $('#signIdcard').text(data.idcard);
+            $('#signPhone').text(data.phone);
+            $('#signAddress').text(data.address);
+            $('#signDisLevel').text(data.disLevel);
+            $('#signPubDate').text(data.pubDate);
+            $('#signAgentName').text(data.agent || '无');
+            $('#signAgentPhone').text(data.agentPhone || '无');
+            $('#signRelation').text(data.relation || '无');
+
+            // 显示服务协议信息（示例数据，实际应从后端获取）
+            $('#signDateDisplay').text('-');
+            $('#expFirstDateDisplay').text('-');
+            $('#noserReasonDisplay').text('-');
+
+            const modal = new bootstrap.Modal(document.getElementById('signModal'));
+            modal.show();
+        });
+
+        // 初始化
+        $(function() {
+            renderTable();
+        });
+    </script>
+</body>
+</html>
+
